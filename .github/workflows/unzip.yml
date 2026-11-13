@@ -1,0 +1,68 @@
+
+name: แตกไฟล์ ZIP อัตโนมัติ
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: ดาวน์โหลด Repository
+        uses: actions/checkout@v4
+
+      - name: แตกไฟล์ ZIP
+        run: |
+          python3 - <<'PY'
+          import zipfile
+          from pathlib import Path
+
+          archive = Path("NEXUS_STOCK_INTELLIGENCE_TH_v4.zip")
+
+          if not archive.exists():
+              raise FileNotFoundError("ไม่พบไฟล์ ZIP")
+
+          root = Path.cwd().resolve()
+
+          with zipfile.ZipFile(archive) as z:
+              for item in z.infolist():
+                  name = item.filename
+                  parts = Path(name).parts
+
+                  if any(
+                      p == ".git"
+                      or p == "node_modules"
+                      or p == ".env"
+                      or p.startswith(".env.")
+                      for p in parts
+                  ):
+                      continue
+
+                  target = (root / name).resolve()
+
+                  if not target.is_relative_to(root):
+                      continue
+
+                  if item.is_dir():
+                      target.mkdir(parents=True, exist_ok=True)
+                  else:
+                      target.parent.mkdir(
+                          parents=True, exist_ok=True
+                      )
+                      with z.open(item) as src:
+                          target.write_bytes(src.read())
+
+          print("แตกไฟล์ ZIP สำเร็จ")
+          PY
+
+      - name: บันทึกไฟล์กลับ GitHub
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Extract NEXUS STOCK ZIP" || echo "ไม่มีไฟล์เปลี่ยนแปลง"
+          git push

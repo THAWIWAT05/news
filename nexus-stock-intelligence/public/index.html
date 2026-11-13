@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NEXUS STOCK INTELLIGENCE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script><link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<div class="shell">
+<aside class="sidebar">
+  <div class="brand"><div class="brand-mark">N</div><div><b>NEXUS</b><small>STOCK INTELLIGENCE</small></div></div>
+  <div class="side-label">เมนูหลัก</div>
+  <a class="nav active" href="#overview">◫ <span>ภาพรวมตลาด</span></a>
+  <a class="nav" href="#watchlist">▤ <span>รายการติดตาม</span></a>
+  <a class="nav" href="#news">◉ <span>ข่าวหุ้น</span></a>
+  <div class="side-label">ระบบ</div>
+  <a class="nav" href="#settings">⚙ <span>ตั้งค่าระบบ</span></a>
+  <div class="side-bottom"><span class="pulse"></span> ระบบข้อมูลพร้อมทำงาน<small>โหมดข้อมูลฟรี · ไม่ใช้ AI API</small></div>
+</aside>
+<main class="main">
+<header class="topbar"><div><div class="eyebrow">หน้าจอตลาด / ภาพรวม</div><h1>ศูนย์บัญชาการตลาดหุ้น</h1></div><div class="top-actions"><span id="lastUpdate">กำลังโหลดข้อมูล...</span><button class="btn ghost" id="refreshBtn">↻ รีเฟรช</button></div></header>
+<section class="hero panel"><div><div class="eyebrow">ระบบวิเคราะห์ตลาด NEXUS</div><h2>ตัดสินใจด้วยข้อมูล<br><span>ไม่ใช่อารมณ์</span></h2><p>ติดตามราคา ข่าว และสัญญาณทางเทคนิคในหน้าจอเดียว</p></div><div class="hero-stat"><small>จำนวนหุ้นที่ติดตาม</small><strong id="assetCount">06</strong><small>ข้อมูลอาจล่าช้าตามผู้ให้บริการ</small></div><div class="orb"></div></section>
+<section id="overview"><div class="section-head"><div><div class="eyebrow">ภาพรวมตลาด</div><h3>ภาพรวมสินทรัพย์</h3></div><span class="muted">ราคาอ้างอิง USD · มีราคาก่อนเปิดตลาดเมื่อผู้ให้บริการส่งข้อมูล</span></div><div class="cards" id="marketCards"><div class="loading">กำลังดึงข้อมูลตลาด...</div></div></section>
+<section id="watchlist"><div class="section-head"><div><div class="eyebrow">สินทรัพย์ของคุณ</div><h3>รายการติดตาม</h3></div><button class="btn" id="editWatchlist">＋ จัดการหุ้น</button></div><div class="panel table-wrap"><table><thead><tr><th>สัญลักษณ์</th><th>ราคาล่าสุด</th><th>เปลี่ยนแปลง</th><th>RSI (14)</th><th>EMA 20</th><th>ปริมาณซื้อขาย</th><th>สถานะ</th></tr></thead><tbody id="watchRows"><tr><td colspan="7" class="loading">กำลังโหลด...</td></tr></tbody></table></div></section>
+<section class="analysis-grid"><div class="panel chart-panel"><div class="section-head"><div><div class="eyebrow">การเคลื่อนไหวของราคา</div><h3 id="chartTitle">NVDA · 120 วันล่าสุด</h3></div><select id="chartSymbol"></select></div><canvas id="priceChart"></canvas></div><div class="panel signal-panel"><div class="eyebrow">ภาพรวมทางเทคนิค</div><h3>สัญญาณทางเทคนิค</h3><div id="signals"><div class="loading">เลือกหุ้นเพื่อดูสัญญาณ</div></div><p class="disclaimer">สัญญาณเป็นการคำนวณจากข้อมูลย้อนหลัง ไม่ใช่คำแนะนำซื้อขาย</p></div></section>
+<section id="news"><div class="section-head"><div><div class="eyebrow">ฟีดข่าวสาร</div><h3>ข่าวที่เกี่ยวข้อง</h3></div><select id="newsSymbol"></select></div><div class="news-note">ทิศทางและระดับผลกระทบเป็นการคัดคำจากพาดหัวข่าว ไม่ใช่ความน่าจะเป็นหรือคำแนะนำลงทุน</div><div class="news-list panel" id="newsList"><div class="loading">กำลังโหลดข่าว...</div></div></section>
+<section id="settings"><div class="section-head"><div><div class="eyebrow">การเชื่อมต่อ</div><h3>การเชื่อมต่อระบบ</h3></div></div><div class="settings-grid"><div class="panel setting"><div class="setting-icon">➤</div><div><h4>บอต Telegram</h4><p>ส่งรายงานหุ้นทั้งหมดและข่าวสำคัญเข้า Telegram ได้อัตโนมัติทุก 5 นาที เมื่อเซิร์ฟเวอร์ทำงานและตั้งค่า .env แล้ว</p><button class="btn" id="telegramTest">ทดสอบการเชื่อมต่อ</button> <button class="btn" id="telegramReport">ส่งรายงานทันที</button><span id="telegramStatus" class="status-text"></span></div></div><div class="panel setting"><div class="setting-icon">⌘</div><div><h4>ระบบวิเคราะห์ฟรี</h4><p>คำนวณ RSI, EMA, SMA, MACD และระดับราคาอ้างอิงจากข้อมูลย้อนหลัง</p><span class="tag">พร้อมใช้งาน · ไม่ต้องใช้ API Key</span></div></div></div></section>
+<footer>NEXUS STOCK INTELLIGENCE <span>จัดทำเพื่อประกอบการศึกษา · ไม่ใช่คำแนะนำการลงทุน</span></footer>
+</main></div>
+<div class="modal-backdrop" id="modal"><div class="modal panel"><button class="close" id="closeModal">×</button><div class="eyebrow">ตั้งค่ารายการติดตาม</div><h3>จัดการรายการติดตาม</h3><p>ใส่สัญลักษณ์หุ้นคั่นด้วยเครื่องหมายจุลภาค เช่น NVDA,TSLA,AVGO</p><input id="symbolsInput" placeholder="NVDA,TSLA,AVGO,EOSE,JEPQ,VOO"><button class="btn primary" id="saveWatchlist">บันทึกรายการ</button><div id="modalStatus" class="status-text"></div></div></div>
+<div class="toast" id="toast"></div><script src="/app.js"></script>
+</body></html>

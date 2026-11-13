@@ -1,5 +1,5 @@
 
-name: แตกไฟล์ ZIP อัตโนมัติ
+name: แตกไฟล์ ZIP ไปยังหน้าแรก Repository
 
 on:
   workflow_dispatch:
@@ -15,23 +15,53 @@ jobs:
       - name: ดาวน์โหลด Repository
         uses: actions/checkout@v4
 
-      - name: แตกไฟล์ ZIP
+      - name: แตก ZIP โดยไม่สร้างโฟลเดอร์ซ้อน
         run: |
           python3 - <<'PY'
           import zipfile
+          import shutil
           from pathlib import Path
 
           archive = Path("NEXUS_STOCK_INTELLIGENCE_TH_v4.zip")
+          root = Path.cwd().resolve()
 
           if not archive.exists():
               raise FileNotFoundError("ไม่พบไฟล์ ZIP")
 
-          root = Path.cwd().resolve()
-
           with zipfile.ZipFile(archive) as z:
-              for item in z.infolist():
-                  name = item.filename
-                  parts = Path(name).parts
+              entries = [
+                  (info, Path(info.filename))
+                  for info in z.infolist()
+                  if info.filename
+              ]
+
+              # ตรวจสอบว่าทุกไฟล์อยู่ในโฟลเดอร์หลักเดียวกันหรือไม่
+              first_parts = [
+                  p.parts[0] for _, p in entries if p.parts
+              ]
+
+              common_folder = (
+                  first_parts[0]
+                  if first_parts
+                  and len(set(first_parts)) == 1
+                  and all(len(p.parts) > 1 for _, p in entries)
+                  else None
+              )
+
+              # ลบโฟลเดอร์เก่าที่เคยแตกไว้
+              if common_folder:
+                  old_folder = (root / common_folder).resolve()
+                  if old_folder.parent == root and old_folder.is_dir():
+                      shutil.rmtree(old_folder)
+
+              for info, path in entries:
+                  parts = path.parts
+
+                  if common_folder:
+                      parts = parts[1:]
+
+                  if not parts:
+                      continue
 
                   if any(
                       p == ".git"
@@ -42,27 +72,27 @@ jobs:
                   ):
                       continue
 
-                  target = (root / name).resolve()
+                  target = (root / Path(*parts)).resolve()
 
                   if not target.is_relative_to(root):
                       continue
 
-                  if item.is_dir():
+                  if info.is_dir():
                       target.mkdir(parents=True, exist_ok=True)
                   else:
                       target.parent.mkdir(
                           parents=True, exist_ok=True
                       )
-                      with z.open(item) as src:
+                      with z.open(info) as src:
                           target.write_bytes(src.read())
 
-          print("แตกไฟล์ ZIP สำเร็จ")
+          print("แตกไฟล์ไปยังหน้าแรก Repository สำเร็จ")
           PY
 
-      - name: บันทึกไฟล์กลับ GitHub
+      - name: Commit และ Push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
-          git commit -m "Extract NEXUS STOCK ZIP" || echo "ไม่มีไฟล์เปลี่ยนแปลง"
+          git commit -m "Extract ZIP to repository root" || echo "ไม่มีการเปลี่ยนแปลง"
           git push
